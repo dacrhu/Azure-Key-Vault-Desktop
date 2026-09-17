@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Azure Key Vault Desktop
+Comment=Browse and manage Azure Key Vault secrets
+Exec=AzureKeyVaultDesktop
+Icon=AzureKeyVaultDesktop
+Categories=Utility;Security;
+Terminal=false

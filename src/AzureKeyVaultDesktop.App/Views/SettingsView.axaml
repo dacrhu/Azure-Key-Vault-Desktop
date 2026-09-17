@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AzureKeyVaultDesktop.App.ViewModels"
+             xmlns:loc="using:AzureKeyVaultDesktop.App.Services.Localization"
+             x:Class="AzureKeyVaultDesktop.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+    <StackPanel Spacing="14" MaxWidth="480">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Content="{Binding [Common_Back], Source={x:Static loc:LocalizationService.Instance}}" Command="{Binding BackCommand}" />
+            <TextBlock Text="{Binding [Settings_Title], Source={x:Static loc:LocalizationService.Instance}}" Classes="pageTitle" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="{Binding [Settings_LanguageLabel], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" />
+            <ComboBox ItemsSource="{Binding AvailableLanguages}" SelectedItem="{Binding SelectedLanguage}" HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:LanguageOption">
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="{Binding [Settings_ClientIdLabel], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" />
+            <TextBox Text="{Binding ClientId}" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="{Binding [Settings_TenantIdLabel], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" />
+            <TextBox Text="{Binding TenantId}" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="{Binding [Settings_ClipboardTimeoutLabel], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" />
+            <NumericUpDown Value="{Binding ClipboardAutoClearSeconds}" Minimum="1" Maximum="300" />
+        </StackPanel>
+
+        <Button Content="{Binding [Common_Save], Source={x:Static loc:LocalizationService.Instance}}" Classes="accent" Command="{Binding SaveCommand}" HorizontalAlignment="Left" />
+
+        <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" Opacity="0.8" />
+
+        <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="{Binding [Settings_VersionLabel], Source={x:Static loc:LocalizationService.Instance}}" Classes="hint" />
+            <TextBlock Text="{Binding AppVersion}" Classes="hint" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

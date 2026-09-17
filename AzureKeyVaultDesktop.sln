@@ -1,0 +1,34 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureKeyVaultDesktop.Core", "src\AzureKeyVaultDesktop.Core\AzureKeyVaultDesktop.Core.csproj", "{CC930805-0EBB-4005-993F-93A78DC2E3A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureKeyVaultDesktop.App", "src\AzureKeyVaultDesktop.App\AzureKeyVaultDesktop.App.csproj", "{2AB7B0D6-D088-4A5D-A161-083CE71FD9B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureKeyVaultDesktop.Core.Tests", "tests\AzureKeyVaultDesktop.Core.Tests\AzureKeyVaultDesktop.Core.Tests.csproj", "{5F2713D7-07C0-4F86-9F90-5414A13F0900}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CC930805-0EBB-4005-993F-93A78DC2E3A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC930805-0EBB-4005-993F-93A78DC2E3A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC930805-0EBB-4005-993F-93A78DC2E3A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC930805-0EBB-4005-993F-93A78DC2E3A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AB7B0D6-D088-4A5D-A161-083CE71FD9B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AB7B0D6-D088-4A5D-A161-083CE71FD9B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AB7B0D6-D088-4A5D-A161-083CE71FD9B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AB7B0D6-D088-4A5D-A161-083CE71FD9B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F2713D7-07C0-4F86-9F90-5414A13F0900}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F2713D7-07C0-4F86-9F90-5414A13F0900}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F2713D7-07C0-4F86-9F90-5414A13F0900}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F2713D7-07C0-4F86-9F90-5414A13F0900}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AzureKeyVaultDesktop.App.ViewModels"
+             xmlns:loc="using:AzureKeyVaultDesktop.App.Services.Localization"
+             x:Class="AzureKeyVaultDesktop.App.Views.SetupGuideView"
+             x:DataType="vm:SetupGuideViewModel">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,14">
+            <Button Content="{Binding [Common_Back], Source={x:Static loc:LocalizationService.Instance}}" Command="{Binding BackCommand}" />
+            <TextBlock Text="{Binding [SetupGuide_Title], Source={x:Static loc:LocalizationService.Instance}}" Classes="pageTitle" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <ScrollViewer>
+            <StackPanel Spacing="10" MaxWidth="640" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding [SetupGuide_Intro], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+
+                <TextBlock Text="{Binding [SetupGuide_Step1], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step2], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step3], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step4], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step5], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step6], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step7], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step8], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step9], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step10], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step11], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Step12], Source={x:Static loc:LocalizationService.Instance}}" TextWrapping="Wrap" />
+
+                <TextBlock Text="{Binding [SetupGuide_NotesTitle], Source={x:Static loc:LocalizationService.Instance}}"
+                           FontWeight="SemiBold"
+                           Margin="0,10,0,0" />
+                <TextBlock Text="{Binding [SetupGuide_Note1], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Note2], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding [SetupGuide_Note3], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" TextWrapping="Wrap" Margin="0,0,0,14" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

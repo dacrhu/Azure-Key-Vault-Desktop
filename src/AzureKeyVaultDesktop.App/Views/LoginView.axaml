@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AzureKeyVaultDesktop.App.ViewModels"
+             xmlns:loc="using:AzureKeyVaultDesktop.App.Services.Localization"
+             x:Class="AzureKeyVaultDesktop.App.Views.LoginView"
+             x:DataType="vm:LoginViewModel">
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Border Width="380"
+                Padding="28"
+                CornerRadius="12"
+                BorderThickness="1"
+                BorderBrush="#33808080"
+                Background="#14808080"
+                BoxShadow="0 2 16 0 #22000000">
+            <StackPanel Spacing="14">
+                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock Text="Azure Key Vault Desktop" Classes="pageTitle" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding [Login_Subtitle], Source={x:Static loc:LocalizationService.Instance}}"
+                               Classes="subtitle" TextWrapping="Wrap" TextAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding [Login_ClientIdLabel], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" />
+                    <TextBox Text="{Binding ClientId}" Watermark="{Binding [Login_ClientIdWatermark], Source={x:Static loc:LocalizationService.Instance}}" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding [Login_TenantIdLabel], Source={x:Static loc:LocalizationService.Instance}}" Classes="subtitle" />
+                    <TextBox Text="{Binding TenantId}" Watermark="{Binding [Login_TenantIdWatermark], Source={x:Static loc:LocalizationService.Instance}}" />
+                </StackPanel>
+
+                <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="3" />
+
+                <Button Content="{Binding [Login_SignIn], Source={x:Static loc:LocalizationService.Instance}}"
+                        Classes="accent"
+                        Command="{Binding SignInCommand}"
+                        IsEnabled="{Binding !IsBusy}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" />
+
+                <Button Content="{Binding [Login_CancelSignIn], Source={x:Static loc:LocalizationService.Instance}}"
+                        Command="{Binding CancelSignInCommand}"
+                        IsVisible="{Binding IsBusy}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" />
+
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" Foreground="OrangeRed" />
+                <Button Classes="link" Command="{Binding OpenSetupGuideCommand}" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding [Login_SetupHint], Source={x:Static loc:LocalizationService.Instance}}" Classes="hint" />
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

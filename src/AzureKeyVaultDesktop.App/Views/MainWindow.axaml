@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AzureKeyVaultDesktop.App.ViewModels"
+        xmlns:local="using:AzureKeyVaultDesktop.App"
+        x:Class="AzureKeyVaultDesktop.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/app-icon.png"
+        Title="Azure Key Vault Desktop"
+        Width="900" Height="640" MinWidth="640" MinHeight="480">
+    <Window.DataTemplates>
+        <local:ViewLocator />
+    </Window.DataTemplates>
+    <ContentControl Content="{Binding CurrentPage}" Margin="24" />
+</Window>

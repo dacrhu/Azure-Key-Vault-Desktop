@@ -1,0 +1,23 @@
+## .NET
+bin/
+obj/
+out/
+publish/
+*.user
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+
+## OS
+.DS_Store
+Thumbs.db
+
+## App-local settings (never commit real client IDs/tenant IDs or auth records)
+**/appsettings.local.json
+authrecord.json
+settings.json
+
+.claude
