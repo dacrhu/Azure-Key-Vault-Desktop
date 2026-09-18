@@ -51,13 +51,17 @@ Tagged releases (plain semver, e.g. `1.0.0`) are built by [.github/workflows/rel
 into self-contained, no-install-required packages for each OS — no separate .NET runtime
 needed on the target machine:
 
-- **Windows**: zip of a self-contained single-file executable
-- **macOS**: temporarily unavailable — this GHE org has no GitHub-hosted macOS runner
-  capacity provisioned, so those release jobs are disabled for now (commented out in
-  `release.yml`/`build.yml` with instructions to re-enable). The packaging script
-  (`packaging/macos/build-app-bundle.sh`) still produces an unsigned `.app` bundle once
-  macOS runners are available again; unsigned means Gatekeeper will warn on first launch —
-  right-click the app and choose **Open**, or run `xattr -cr AzureKeyVaultDesktop.app`
+- **Windows**: a portable zip, an MSI, and an EXE installer
+- **macOS**: a `.dmg` and a portable zip, for both `osx-x64` and `osx-arm64`. The app is
+  **not code-signed or notarized**, so on first launch (or first mount of the dmg) Gatekeeper
+  will report it as "damaged" or unable to be opened — this is not a corrupted download, just
+  macOS refusing to run software from an unidentified developer. Fix it with either:
+  - Terminal: `xattr -cr /path/to/AzureKeyVaultDesktop.app` (run against the `.app` after
+    unzipping, or against the mounted volume's `.app` before dragging it to Applications), or
+  - **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to
+    the app's name (you may need to attempt to open it once first for that button to appear;
+    on macOS Sequoia the old right-click → Open "Open Anyway" prompt is often skipped in favor
+    of this Settings-panel flow)
 - **Linux**: a self-contained AppImage (`chmod +x` it, then run)
 
 ## Security notes
