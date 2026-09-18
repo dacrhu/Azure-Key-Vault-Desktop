@@ -97,19 +97,27 @@ Keep this pattern for any future startup-time blocking call.
 
 ## CI/CD and releases
 
-- `.github/workflows/build.yml`: build+test matrix (ubuntu/windows) on PRs and on tag
+- `.github/workflows/build.yml`: build+test matrix (ubuntu/windows/macos) on PRs and on tag
   pushes matching `*.*.*` — deliberately **not** on every push to `main`.
 - `.github/workflows/release.yml`: triggers on tags matching `*.*.*` (no `v` prefix — tags are
   plain semver like `1.0.0`). Publishes self-contained per-RID builds with `-p:Version=<tag>`,
-  packages a Windows zip and a Linux AppImage (`APPIMAGE_EXTRACT_AND_RUN=1` when invoking
-  `appimagetool` — it's itself an AppImage and needs that to run without FUSE, which
-  `ubuntu-latest` runners don't have), then creates a GitHub Release.
-- **macOS is currently disabled** in both workflows (commented out, not deleted) — re-enable by
-  uncommenting the `osx-x64`/`osx-arm64` matrix entries in `release.yml` (and adding
-  `macos-latest` back to the `build.yml` matrix) once a macOS runner is available. The macOS
-  packaging script/icon conversion (`packaging/macos/build-app-bundle.sh`, `.icns` from
-  `packaging/macos/icon.png` via `sips`/`iconutil`) is already in place and just needs a runner
-  to execute on.
+  then packages, per OS:
+  - **Windows** (`win-x64`): a portable zip, an MSI (`packaging/windows/product.wxs`, built with
+    the cross-platform `wix` dotnet tool pinned to v5 — v6+ requires accepting WiX's paid "Open
+    Source Maintenance Fee" EULA, not worth it here — files are listed explicitly in the .wxs
+    rather than glob-harvested, so a future Avalonia/SkiaSharp upgrade that changes the native
+    DLLs dropped next to the exe needs that file updated by hand), and an EXE installer
+    (`packaging/windows/installer.iss`, built with Inno Setup via `ISCC.exe`, installed through
+    Chocolatey since it isn't guaranteed preinstalled on `windows-latest`).
+  - **macOS** (`osx-x64`/`osx-arm64`): a `.dmg` (`hdiutil create`) and a portable zip, both
+    wrapping the unsigned `.app` bundle from `packaging/macos/build-app-bundle.sh` — users still
+    need to right-click > Open the first time, or `xattr -cr`, since the app isn't
+    code-signed/notarized.
+  - **Linux** (`linux-x64`): an AppImage (`APPIMAGE_EXTRACT_AND_RUN=1` when invoking
+    `appimagetool` — it's itself an AppImage and needs that to run without FUSE, which
+    `ubuntu-latest` runners don't have).
+
+  Then creates a GitHub Release from all of the above.
 
 ## Security constraints (don't relax these)
 

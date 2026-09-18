@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WiX v5 source for the Windows MSI installer. Built with the `wix` CLI (dotnet tool) against
+  a `dotnet publish` self-contained/single-file output — see .github/workflows/release.yml.
+
+  Files are listed explicitly rather than wildcard-harvested from the publish directory: WiX's
+  glob-harvesting sugar needs a newer toolset major version that requires accepting the paid
+  "Open Source Maintenance Fee" EULA (see wixtoolset.org/osmf), which isn't worth taking on for
+  this project. If a future Avalonia/SkiaSharp upgrade changes the native DLLs that
+  `dotnet publish -r win-x64` (self-contained, PublishSingleFile) drops next to the exe,
+  update the <Component> list below to match.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="Azure Key Vault Desktop"
+           Manufacturer="Azure Key Vault Desktop"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="DC5F3EFC-BB11-4CB7-AEF8-6B2BA33DAF1E"
+           Language="1033"
+           Scope="perMachine">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="$(var.IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Azure Key Vault Desktop" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <StandardDirectory Id="DesktopFolder" />
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Component Id="AppExe" Guid="A1B2C3D4-1111-4A2B-8C3D-4E5F6A7B8C9D">
+        <File Id="AppExeFile" Source="$(var.PublishDir)\AzureKeyVaultDesktop.exe" KeyPath="yes" />
+        <Shortcut Id="StartMenuShortcut"
+                  Directory="ProgramMenuFolder"
+                  Name="Azure Key Vault Desktop"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon"
+                  Advertise="yes" />
+        <Shortcut Id="DesktopShortcut"
+                  Directory="DesktopFolder"
+                  Name="Azure Key Vault Desktop"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon"
+                  Advertise="yes" />
+      </Component>
+      <Component Id="LibSkiaSharp" Guid="B2C3D4E5-2222-4B3C-9D4E-5F6A7B8C9D0E">
+        <File Id="LibSkiaSharpFile" Source="$(var.PublishDir)\libSkiaSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="LibHarfBuzzSharp" Guid="C3D4E5F6-3333-4C4D-AE5F-6A7B8C9D0E1F">
+        <File Id="LibHarfBuzzSharpFile" Source="$(var.PublishDir)\libHarfBuzzSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="AvLibGles" Guid="D4E5F6A7-4444-4D5E-BF60-7A8B9C0D1E2F">
+        <File Id="AvLibGlesFile" Source="$(var.PublishDir)\av_libglesv2.dll" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="Main" Title="Azure Key Vault Desktop" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+    </Feature>
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+  </Package>
+</Wix>

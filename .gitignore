@@ -4,6 +4,7 @@ obj/
 out/
 publish/
 *.user
+.wix/
 
 ## IDE
 .vs/

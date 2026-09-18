@@ -41,16 +41,47 @@ jobs:
           -p:Version=${{ env.VERSION }}
           -o publish/${{ matrix.rid }}
 
-      - name: Package (Windows)
+      - name: Package (Windows, portable zip)
         if: runner.os == 'Windows'
         shell: pwsh
         run: Compress-Archive -Path publish/${{ matrix.rid }}/* -DestinationPath AzureKeyVaultDesktop-${{ matrix.rid }}.zip
 
-      - name: Package (macOS)
+      - name: Install installer tooling (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add WixToolset.UI.wixext/5.0.2
+          choco install innosetup -y --no-progress
+
+      - name: Package (Windows, MSI)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: >
+          wix build packaging/windows/product.wxs
+          -arch x64
+          -d ProductVersion=${{ env.VERSION }}
+          -d PublishDir=${{ github.workspace }}\publish\${{ matrix.rid }}
+          -d IconFile=${{ github.workspace }}\src\AzureKeyVaultDesktop.App\Assets\app-icon.ico
+          -ext WixToolset.UI.wixext/5.0.2
+          -o AzureKeyVaultDesktop-${{ env.VERSION }}.msi
+
+      - name: Package (Windows, EXE installer)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
+            "/DMyAppVersion=${{ env.VERSION }}" `
+            "/DPublishDir=${{ github.workspace }}\publish\${{ matrix.rid }}" `
+            "/DOutputDir=${{ github.workspace }}" `
+            packaging/windows/installer.iss
+
+      - name: Package (macOS, dmg + portable zip)
         if: runner.os == 'macOS'
         run: |
           chmod +x packaging/macos/build-app-bundle.sh
           packaging/macos/build-app-bundle.sh publish/${{ matrix.rid }} AzureKeyVaultDesktop.app "${{ env.VERSION }}"
+          hdiutil create -volname "Azure Key Vault Desktop" -srcfolder AzureKeyVaultDesktop.app -ov -format UDZO AzureKeyVaultDesktop-${{ matrix.rid }}.dmg
           ditto -c -k --sequesterRsrc --keepParent AzureKeyVaultDesktop.app AzureKeyVaultDesktop-${{ matrix.rid }}.zip
 
       - name: Package (Linux)
@@ -65,6 +96,9 @@ jobs:
           name: package-${{ matrix.rid }}
           path: |
             AzureKeyVaultDesktop-*.zip
+            AzureKeyVaultDesktop-*.msi
+            AzureKeyVaultDesktop-*-Setup.exe
+            AzureKeyVaultDesktop-*.dmg
             AzureKeyVaultDesktop-*.AppImage
           if-no-files-found: error
 
