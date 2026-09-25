@@ -39,6 +39,12 @@ public partial class SecretDetailViewModel : ViewModelBase
     [ObservableProperty]
     private string _editedValue = string.Empty;
 
+    [ObservableProperty]
+    private string? _contentType;
+
+    [ObservableProperty]
+    private string _editedContentType = string.Empty;
+
     public ObservableCollection<SecretVersionSummary> Versions { get; } = new();
 
     [ObservableProperty]
@@ -68,6 +74,7 @@ public partial class SecretDetailViewModel : ViewModelBase
         _vault = vault;
         SecretName = secretName;
         RevealedValue = null;
+        ContentType = null;
         StatusMessage = null;
         IsEditing = false;
         Versions.Clear();
@@ -106,10 +113,14 @@ public partial class SecretDetailViewModel : ViewModelBase
 
     partial void OnSelectedVersionChanged(SecretVersionSummary? value)
     {
-        // Only auto-refetch if the user has already explicitly revealed a value this visit —
-        // otherwise switching the version dropdown before ever clicking Reveal would silently
-        // pull a secret value without an explicit action, which is exactly what Reveal exists
-        // to prevent.
+        // Content type is metadata, not the secret value itself — safe to show without an
+        // explicit Reveal.
+        ContentType = value?.ContentType;
+
+        // Only auto-refetch the value if the user has already explicitly revealed it this
+        // visit — otherwise switching the version dropdown before ever clicking Reveal would
+        // silently pull a secret value without an explicit action, which is exactly what
+        // Reveal exists to prevent.
         if (RevealedValue is not null)
         {
             _ = RevealAsync();
@@ -164,6 +175,7 @@ public partial class SecretDetailViewModel : ViewModelBase
     {
         IsEditing = true;
         EditedValue = RevealedValue ?? string.Empty;
+        EditedContentType = ContentType ?? string.Empty;
     }
 
     [RelayCommand]
@@ -181,8 +193,10 @@ public partial class SecretDetailViewModel : ViewModelBase
         StatusMessage = null;
         try
         {
-            await _secretsService.UpdateSecretValueAsync(_vault.VaultUri, SecretName, EditedValue);
+            var contentType = string.IsNullOrWhiteSpace(EditedContentType) ? null : EditedContentType.Trim();
+            await _secretsService.UpdateSecretValueAsync(_vault.VaultUri, SecretName, EditedValue, contentType);
             RevealedValue = EditedValue;
+            ContentType = contentType;
             IsEditing = false;
             StatusMessage = _loc["SecretDetail_NewVersionSaved"];
             await LoadVersionsAsync();

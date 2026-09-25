@@ -12,6 +12,22 @@
             <Button Grid.Column="3" Content="{Binding [Common_SignOut], Source={x:Static loc:LocalizationService.Instance}}" Command="{Binding SignOutCommand}" Margin="4,0" />
         </Grid>
 
+        <Border DockPanel.Dock="Top"
+                IsVisible="{Binding UpdateAvailable}"
+                Background="#1F0078D4"
+                CornerRadius="6"
+                Padding="12,8"
+                Margin="0,0,0,12">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding UpdateMessage}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <Button Grid.Column="1"
+                        Classes="link"
+                        Content="{Binding [VaultList_UpdateDownload], Source={x:Static loc:LocalizationService.Instance}}"
+                        Command="{Binding OpenReleasePageCommand}"
+                        Margin="12,0,0,0" />
+            </Grid>
+        </Border>
+
         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
             <TextBox Grid.Column="0" Text="{Binding SearchText}" Watermark="{Binding [VaultList_SearchWatermark], Source={x:Static loc:LocalizationService.Instance}}" Margin="0,0,8,0" />
             <ComboBox Grid.Column="1" ItemsSource="{Binding Subscriptions}" SelectedItem="{Binding SelectedSubscription}" MinWidth="200" />

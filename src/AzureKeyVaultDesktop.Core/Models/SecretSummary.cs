@@ -1,3 +1,3 @@
 namespace AzureKeyVaultDesktop.Core.Models;
 
-public record SecretSummary(string Name, bool Enabled, DateTimeOffset? UpdatedOn);
+public record SecretSummary(string Name, bool Enabled, DateTimeOffset? UpdatedOn, string? ContentType);

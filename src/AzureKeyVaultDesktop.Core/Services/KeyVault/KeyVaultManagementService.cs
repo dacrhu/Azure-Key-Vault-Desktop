@@ -17,14 +17,19 @@ public class KeyVaultManagementService : IKeyVaultManagementService
     private const int MaxConcurrentVaultProbes = 8;
 
     private readonly IAuthService _authService;
+    private readonly IVaultListCacheStore _cacheStore;
     private TokenCredential? _lastCredential;
     private ArmClient? _armClient;
     private List<VaultSummary>? _cachedVaults;
+    private bool _needsStartupReconcile = true;
 
-    public KeyVaultManagementService(IAuthService authService)
+    public KeyVaultManagementService(IAuthService authService, IVaultListCacheStore cacheStore)
     {
         _authService = authService;
+        _cacheStore = cacheStore;
     }
+
+    public bool NeedsStartupReconcile => _needsStartupReconcile;
 
     public async IAsyncEnumerable<VaultSummary> ListAccessibleVaultsAsync(
         bool forceRefresh = false,
@@ -32,16 +37,28 @@ public class KeyVaultManagementService : IKeyVaultManagementService
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         var (armClient, credential) = GetArmClient();
+        var accountKey = GetAccountKey();
 
-        if (!forceRefresh && _cachedVaults is not null)
+        if (!forceRefresh)
         {
-            foreach (var vault in _cachedVaults)
+            // Nothing in memory yet this process — fall back to whatever was persisted from
+            // the previous run instead of blocking on a fresh, multi-subscription,
+            // per-vault-probed fetch just to paint the first frame.
+            if (_cachedVaults is null && accountKey is not null)
             {
-                ct.ThrowIfCancellationRequested();
-                yield return vault;
+                _cachedVaults = await _cacheStore.LoadAsync(accountKey, ct);
             }
 
-            yield break;
+            if (_cachedVaults is not null)
+            {
+                foreach (var vault in _cachedVaults)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    yield return vault;
+                }
+
+                yield break;
+            }
         }
 
         var subscriptions = new List<SubscriptionResource>();
@@ -125,6 +142,12 @@ public class KeyVaultManagementService : IKeyVaultManagementService
         }
 
         _cachedVaults = collected;
+        _needsStartupReconcile = false;
+
+        if (accountKey is not null)
+        {
+            await _cacheStore.SaveAsync(accountKey, collected, ct);
+        }
     }
 
     private static async Task<bool> HasSecretsAccessAsync(Uri vaultUri, TokenCredential credential, CancellationToken ct)
@@ -157,9 +180,16 @@ public class KeyVaultManagementService : IKeyVaultManagementService
             // vault list cached under the previous identity) must not leak into this session.
             _armClient = new ArmClient(credential);
             _cachedVaults = null;
+            _needsStartupReconcile = true;
             _lastCredential = credential;
         }
 
         return (_armClient, credential);
+    }
+
+    private string? GetAccountKey()
+    {
+        var account = _authService.CurrentAccount;
+        return account is null ? null : $"{account.Username}|{account.TenantId}";
     }
 }

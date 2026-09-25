@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Avalonia.Threading;
 using AzureKeyVaultDesktop.App.Services;
 using AzureKeyVaultDesktop.App.Services.Localization;
 using AzureKeyVaultDesktop.Core.Models;
 using AzureKeyVaultDesktop.Core.Services.Auth;
 using AzureKeyVaultDesktop.Core.Services.KeyVault;
+using AzureKeyVaultDesktop.Core.Services.Updates;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -14,8 +16,17 @@ public partial class VaultListViewModel : ViewModelBase
 {
     private readonly IKeyVaultManagementService _keyVaultManagementService;
     private readonly IAuthService _authService;
+    private readonly IUpdateCheckService _updateCheckService;
     private readonly INavigationService _navigationService;
     private readonly ILocalizationService _loc;
+
+    private string? _updateReleaseUrl;
+
+    [ObservableProperty]
+    private bool _updateAvailable;
+
+    [ObservableProperty]
+    private string? _updateMessage;
 
     // Instances are transient (a fresh one per navigation), so reading the current translation
     // once here is enough — it can't go stale mid-visit without a full re-navigation anyway.
@@ -50,22 +61,64 @@ public partial class VaultListViewModel : ViewModelBase
     public VaultListViewModel(
         IKeyVaultManagementService keyVaultManagementService,
         IAuthService authService,
+        IUpdateCheckService updateCheckService,
         INavigationService navigationService,
         ILocalizationService loc)
     {
         _keyVaultManagementService = keyVaultManagementService;
         _authService = authService;
+        _updateCheckService = updateCheckService;
         _navigationService = navigationService;
         _loc = loc;
 
         _selectedSubscription = AllSubscriptionsLabel;
         Subscriptions.Add(AllSubscriptionsLabel);
 
-        _ = LoadAsync(forceRefresh: false);
+        _ = InitializeAsync();
+        _ = CheckForUpdateAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+        // First paint: instant if a previous run left an on-disk cache (nothing shown yet, so
+        // there's nothing to preserve — a full build is fine here), otherwise this itself is
+        // already the live fetch.
+        await LoadAsync(forceRefresh: false);
+
+        // Only the disk-cache-served case still needs to check Azure — a genuine live fetch
+        // above already flips this off, so this never double-fetches on a cold cache.
+        if (_keyVaultManagementService.NeedsStartupReconcile)
+        {
+            await ReconcileAsync();
+        }
+    }
+
+    private async Task CheckForUpdateAsync()
+    {
+        var result = await _updateCheckService.CheckForUpdateAsync(AppVersion.Current);
+        if (result is null)
+        {
+            return;
+        }
+
+        _updateReleaseUrl = result.ReleaseUrl;
+        UpdateMessage = _loc.Translate("VaultList_UpdateAvailable", result.LatestVersion);
+        UpdateAvailable = true;
     }
 
     [RelayCommand]
-    private Task RefreshAsync() => LoadAsync(forceRefresh: true);
+    private void OpenReleasePage()
+    {
+        if (_updateReleaseUrl is null)
+        {
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo(_updateReleaseUrl) { UseShellExecute = true });
+    }
+
+    [RelayCommand]
+    private Task RefreshAsync() => ReconcileAsync();
 
     private async Task LoadAsync(bool forceRefresh)
     {
@@ -87,6 +140,57 @@ public partial class VaultListViewModel : ViewModelBase
                 EnsureSubscriptionKnown(vault.SubscriptionDisplayName);
                 ApplyFilter();
             }
+
+            if (_allVaults.Count == 0 && StatusMessage is null)
+            {
+                StatusMessage = _loc["VaultList_NoVaultsFound"];
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = _loc.Translate("VaultList_LoadError", ex.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+            ApplyFilter();
+        }
+    }
+
+    /// <summary>Live-fetches against Azure like <see cref="LoadAsync"/>, but merges into
+    /// <see cref="_allVaults"/> instead of clearing it first — vaults still present are left
+    /// untouched (just refreshed in place), newly-found ones are added, and ones no longer
+    /// accessible are removed. Used both for the once-per-process startup reconcile (so a
+    /// relaunch doesn't have to wipe and rebuild the list a disk cache just painted instantly)
+    /// and for the manual Refresh button, so neither flashes the list empty.</summary>
+    private async Task ReconcileAsync()
+    {
+        IsBusy = true;
+        StatusMessage = null;
+        var seenUris = new HashSet<Uri>();
+        try
+        {
+            await foreach (var vault in _keyVaultManagementService.ListAccessibleVaultsAsync(
+                forceRefresh: true,
+                onSubscriptionWarning: (sub, reason) =>
+                    Dispatcher.UIThread.Post(() => StatusMessage = _loc.Translate("VaultList_SubscriptionWarning", sub, reason))))
+            {
+                seenUris.Add(vault.VaultUri);
+                var index = _allVaults.FindIndex(v => v.VaultUri == vault.VaultUri);
+                if (index >= 0)
+                {
+                    _allVaults[index] = vault;
+                }
+                else
+                {
+                    _allVaults.Add(vault);
+                    EnsureSubscriptionKnown(vault.SubscriptionDisplayName);
+                }
+
+                ApplyFilter();
+            }
+
+            _allVaults.RemoveAll(v => !seenUris.Contains(v.VaultUri));
 
             if (_allVaults.Count == 0 && StatusMessage is null)
             {

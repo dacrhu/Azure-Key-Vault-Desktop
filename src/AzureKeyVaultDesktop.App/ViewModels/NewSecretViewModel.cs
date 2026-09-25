@@ -22,6 +22,9 @@ public partial class NewSecretViewModel : ViewModelBase
     private string _value = string.Empty;
 
     [ObservableProperty]
+    private string _contentType = string.Empty;
+
+    [ObservableProperty]
     private bool _isBusy;
 
     [ObservableProperty]
@@ -39,6 +42,7 @@ public partial class NewSecretViewModel : ViewModelBase
         _vault = vault;
         Name = string.Empty;
         Value = string.Empty;
+        ContentType = string.Empty;
         StatusMessage = null;
     }
 
@@ -66,7 +70,8 @@ public partial class NewSecretViewModel : ViewModelBase
         StatusMessage = null;
         try
         {
-            await _secretsService.CreateSecretAsync(_vault.VaultUri, Name, Value);
+            var contentType = string.IsNullOrWhiteSpace(ContentType) ? null : ContentType.Trim();
+            await _secretsService.CreateSecretAsync(_vault.VaultUri, Name, Value, contentType);
             var vault = _vault;
             _navigationService.NavigateTo<SecretListViewModel>(vm => vm.Initialize(vault));
         }

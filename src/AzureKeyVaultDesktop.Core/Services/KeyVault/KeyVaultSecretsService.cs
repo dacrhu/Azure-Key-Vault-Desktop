@@ -43,7 +43,7 @@ public class KeyVaultSecretsService : IKeyVaultSecretsService
         var collected = new List<SecretSummary>();
         await foreach (var properties in client.GetPropertiesOfSecretsAsync(ct))
         {
-            var summary = new SecretSummary(properties.Name, properties.Enabled ?? true, properties.UpdatedOn);
+            var summary = new SecretSummary(properties.Name, properties.Enabled ?? true, properties.UpdatedOn, properties.ContentType);
             collected.Add(summary);
             yield return summary;
         }
@@ -76,7 +76,8 @@ public class KeyVaultSecretsService : IKeyVaultSecretsService
                 properties.Version,
                 properties.Enabled ?? true,
                 properties.UpdatedOn,
-                properties.Version == currentVersion);
+                properties.Version == currentVersion,
+                properties.ContentType);
         }
     }
 
@@ -87,7 +88,7 @@ public class KeyVaultSecretsService : IKeyVaultSecretsService
         return response.Value.Value;
     }
 
-    public async Task CreateSecretAsync(Uri vaultUri, string name, string value, CancellationToken ct = default)
+    public async Task CreateSecretAsync(Uri vaultUri, string name, string value, string? contentType = null, CancellationToken ct = default)
     {
         if (!SecretNameValidator.IsValid(name))
         {
@@ -96,14 +97,16 @@ public class KeyVaultSecretsService : IKeyVaultSecretsService
         }
 
         var client = GetClient(vaultUri);
-        await client.SetSecretAsync(name, value, ct);
+        var secret = new KeyVaultSecret(name, value) { Properties = { ContentType = contentType } };
+        await client.SetSecretAsync(secret, ct);
         _listCache.TryRemove(vaultUri, out _);
     }
 
-    public async Task UpdateSecretValueAsync(Uri vaultUri, string name, string value, CancellationToken ct = default)
+    public async Task UpdateSecretValueAsync(Uri vaultUri, string name, string value, string? contentType = null, CancellationToken ct = default)
     {
         var client = GetClient(vaultUri);
-        await client.SetSecretAsync(name, value, ct);
+        var secret = new KeyVaultSecret(name, value) { Properties = { ContentType = contentType } };
+        await client.SetSecretAsync(secret, ct);
         _listCache.TryRemove(vaultUri, out _);
     }
 

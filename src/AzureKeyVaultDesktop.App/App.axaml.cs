@@ -9,6 +9,7 @@ using AzureKeyVaultDesktop.Core.Services.Auth;
 using AzureKeyVaultDesktop.Core.Services.Clipboard;
 using AzureKeyVaultDesktop.Core.Services.KeyVault;
 using AzureKeyVaultDesktop.Core.Services.Settings;
+using AzureKeyVaultDesktop.Core.Services.Updates;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AzureKeyVaultDesktop.App;
@@ -64,8 +65,12 @@ public partial class App : Application
         // These take IAuthService itself, not a snapshot of .Credential — they re-read it on
         // every call and rebuild their internal clients/caches when it changes, so signing out
         // and back in as a different user can't keep serving the previous identity's data.
+        services.AddSingleton<IVaultListCacheStore, JsonVaultListCacheStore>();
         services.AddSingleton<IKeyVaultManagementService, KeyVaultManagementService>();
         services.AddSingleton<IKeyVaultSecretsService, KeyVaultSecretsService>();
+
+        // Singleton so the (memoized) GitHub API check only ever runs once per app run.
+        services.AddSingleton<IUpdateCheckService, GitHubReleaseUpdateCheckService>();
 
         services.AddSingleton<MainWindowViewModel>();
 

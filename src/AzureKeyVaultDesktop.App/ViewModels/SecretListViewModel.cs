@@ -16,6 +16,10 @@ public partial class SecretListViewModel : ViewModelBase
 
     private VaultSummary? _vault;
 
+    // Raw, unfiltered accumulation of everything the streaming load has produced so far;
+    // DisplayedSecrets is always recomputed from this plus the current search text.
+    private readonly List<SecretSummary> _allSecrets = new();
+
     [ObservableProperty]
     private string _vaultName = string.Empty;
 
@@ -25,7 +29,13 @@ public partial class SecretListViewModel : ViewModelBase
     [ObservableProperty]
     private string? _statusMessage;
 
-    public ObservableCollection<SecretSummary> Secrets { get; } = new();
+    [ObservableProperty]
+    private bool _noResultsVisible;
+
+    [ObservableProperty]
+    private string? _searchText;
+
+    public ObservableCollection<SecretSummary> DisplayedSecrets { get; } = new();
 
     [ObservableProperty]
     private SecretSummary? _selectedSecret;
@@ -56,15 +66,17 @@ public partial class SecretListViewModel : ViewModelBase
 
         IsBusy = true;
         StatusMessage = null;
-        Secrets.Clear();
+        _allSecrets.Clear();
+        ApplyFilter();
         try
         {
             await foreach (var secret in _secretsService.ListSecretsAsync(_vault.VaultUri, forceRefresh))
             {
-                Secrets.Add(secret);
+                _allSecrets.Add(secret);
+                ApplyFilter();
             }
 
-            if (Secrets.Count == 0)
+            if (_allSecrets.Count == 0)
             {
                 StatusMessage = _loc["SecretList_NoSecrets"];
             }
@@ -76,7 +88,31 @@ public partial class SecretListViewModel : ViewModelBase
         finally
         {
             IsBusy = false;
+            ApplyFilter();
         }
+    }
+
+    partial void OnSearchTextChanged(string? value) => ApplyFilter();
+
+    private void ApplyFilter()
+    {
+        IEnumerable<SecretSummary> query = _allSecrets;
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var term = SearchText.Trim();
+            query = query.Where(s => s.Name.Contains(term, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var sorted = query.OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase).ToList();
+
+        DisplayedSecrets.Clear();
+        foreach (var secret in sorted)
+        {
+            DisplayedSecrets.Add(secret);
+        }
+
+        NoResultsVisible = !IsBusy && DisplayedSecrets.Count == 0 && _allSecrets.Count > 0;
     }
 
     partial void OnSelectedSecretChanged(SecretSummary? value)

@@ -21,9 +21,9 @@ public interface IKeyVaultSecretsService
     /// "reveal"/"copy" action — never to bulk-populate a list.</summary>
     Task<string> GetSecretValueAsync(Uri vaultUri, string name, string? version = null, CancellationToken ct = default);
 
-    Task CreateSecretAsync(Uri vaultUri, string name, string value, CancellationToken ct = default);
+    Task CreateSecretAsync(Uri vaultUri, string name, string value, string? contentType = null, CancellationToken ct = default);
 
     /// <summary>Adds a new version to an existing secret (Key Vault never overwrites a version
     /// in place — this is exactly what the Azure Portal's "New Version" does).</summary>
-    Task UpdateSecretValueAsync(Uri vaultUri, string name, string value, CancellationToken ct = default);
+    Task UpdateSecretValueAsync(Uri vaultUri, string name, string value, string? contentType = null, CancellationToken ct = default);
 }

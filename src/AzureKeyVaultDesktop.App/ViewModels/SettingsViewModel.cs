@@ -1,4 +1,3 @@
-using System.Reflection;
 using AzureKeyVaultDesktop.App.Services;
 using AzureKeyVaultDesktop.App.Services.Localization;
 using AzureKeyVaultDesktop.Core.Services.Settings;
@@ -13,7 +12,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly INavigationService _navigationService;
     private readonly ILocalizationService _loc;
 
-    public string AppVersion { get; } = GetAppVersion();
+    public string AppVersion { get; } = Services.AppVersion.Current;
 
     [ObservableProperty]
     private string? _clientId;
@@ -63,12 +62,4 @@ public partial class SettingsViewModel : ViewModelBase
 
     [RelayCommand]
     private void Back() => _navigationService.NavigateTo<VaultListViewModel>();
-
-    private static string GetAppVersion()
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-        return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-            ?? assembly.GetName().Version?.ToString()
-            ?? "dev";
-    }
 }
