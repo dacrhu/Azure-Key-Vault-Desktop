@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
+using Azure;
 using AzureKeyVaultDesktop.App.Services;
 using AzureKeyVaultDesktop.App.Services.Localization;
 using AzureKeyVaultDesktop.Core.Models;
@@ -45,6 +46,9 @@ public partial class SecretDetailViewModel : ViewModelBase
     [ObservableProperty]
     private string _editedContentType = string.Empty;
 
+    [ObservableProperty]
+    private bool _isConfirmingDelete;
+
     public ObservableCollection<SecretVersionSummary> Versions { get; } = new();
 
     [ObservableProperty]
@@ -77,6 +81,7 @@ public partial class SecretDetailViewModel : ViewModelBase
         ContentType = null;
         StatusMessage = null;
         IsEditing = false;
+        IsConfirmingDelete = false;
         Versions.Clear();
 
         _ = LoadVersionsAsync();
@@ -204,6 +209,50 @@ public partial class SecretDetailViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = _loc.Translate("SecretDetail_SaveError", ex.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private void BeginDelete()
+    {
+        StatusMessage = null;
+        IsConfirmingDelete = true;
+    }
+
+    [RelayCommand]
+    private void CancelDelete() => IsConfirmingDelete = false;
+
+    [RelayCommand]
+    private async Task ConfirmDeleteAsync()
+    {
+        if (_vault is null)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        StatusMessage = null;
+        try
+        {
+            await _secretsService.DeleteSecretAsync(_vault.VaultUri, SecretName);
+            var vault = _vault;
+            _navigationService.NavigateTo<SecretListViewModel>(vm => vm.Initialize(vault));
+        }
+        catch (RequestFailedException ex) when (ex.Status == 403)
+        {
+            // Whether the user may delete depends on RBAC/access policy and can't be known
+            // up front, so the attempt is handled instead of pre-disabling the button.
+            IsConfirmingDelete = false;
+            StatusMessage = _loc["SecretDetail_DeleteForbidden"];
+        }
+        catch (Exception ex)
+        {
+            IsConfirmingDelete = false;
+            StatusMessage = _loc.Translate("SecretDetail_DeleteError", ex.Message);
         }
         finally
         {

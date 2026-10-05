@@ -26,4 +26,10 @@ public interface IKeyVaultSecretsService
     /// <summary>Adds a new version to an existing secret (Key Vault never overwrites a version
     /// in place — this is exactly what the Azure Portal's "New Version" does).</summary>
     Task UpdateSecretValueAsync(Uri vaultUri, string name, string value, string? contentType = null, CancellationToken ct = default);
+
+    /// <summary>Deletes a secret (all versions). With soft-delete enabled on the vault — the
+    /// default — it moves to the deleted state and can be recovered in the portal; this never
+    /// purges it, and never touches the vault itself. Throws <see cref="Azure.RequestFailedException"/>
+    /// with status 403 when the user lacks permission.</summary>
+    Task DeleteSecretAsync(Uri vaultUri, string name, CancellationToken ct = default);
 }

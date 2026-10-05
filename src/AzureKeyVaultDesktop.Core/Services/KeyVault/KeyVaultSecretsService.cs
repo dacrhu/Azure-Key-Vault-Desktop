@@ -110,6 +110,14 @@ public class KeyVaultSecretsService : IKeyVaultSecretsService
         _listCache.TryRemove(vaultUri, out _);
     }
 
+    public async Task DeleteSecretAsync(Uri vaultUri, string name, CancellationToken ct = default)
+    {
+        var client = GetClient(vaultUri);
+        // Only start the delete; waiting for full completion isn't needed (and can be slow).
+        await client.StartDeleteSecretAsync(name, ct);
+        _listCache.TryRemove(vaultUri, out _);
+    }
+
     private SecretClient GetClient(Uri vaultUri)
     {
         var credential = _authService.Credential;
